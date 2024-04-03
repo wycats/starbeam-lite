@@ -1,0 +1,48 @@
+{
+  "private": true,
+  "name": "@starbeam-lite/core",
+  "type": "module",
+  "version": "0.0.0",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc && vite build",
+    "dev": "vite --clearScreen false",
+    "docs": "typedoc",
+    "lint": "eslint \"src/**/*.ts\"",
+    "preview": "vite preview",
+    "test": "vitest --run"
+  },
+  "dependencies": {
+    "@starbeam-lite/shared": "workspace:^"
+  },
+  "devDependencies": {
+    "@rollup/plugin-terser": "^0.4.4",
+    "@swc/core": "^1.4.11",
+    "@workspace/build-utils": "workspace:^",
+    "@workspace/test-utils": "workspace:^",
+    "rollup-plugin-swc-minify": "^1.1.0",
+    "terser": "^5.30.0",
+    "typescript": "^5.4.3",
+    "unplugin-swc": "^1.4.4",
+    "vite": "^5.2.7",
+    "vitest": "^1.4.0"
+  },
+  "peerDependencies": {
+    "@starbeam-lite/shared": "workspace:^"
+  },
+  "peerDependenciesMeta": {
+    "@starbeam-lite/shared": {
+      "optional": true
+    }
+  }
+}

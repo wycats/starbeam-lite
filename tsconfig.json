@@ -1,0 +1,4 @@
+{
+  "extends": "./.config/tsconfig.shared.json",
+  "include": ["*.ts", "packages/@starbeam-lite/shared/vite.config.ts"]
+}

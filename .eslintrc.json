@@ -1,0 +1,12 @@
+{
+  "root": true,
+  "ignorePatterns": [
+    "*",
+    "!.eslintrc.json",
+    "!tsconfig.json",
+    "!package.json",
+    "!.vscode",
+    "!vitest.workspace.ts"
+  ],
+  "extends": ["plugin:@starbeam-dev/library:recommended"]
+}

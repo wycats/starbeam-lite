@@ -1,0 +1,7 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["packages/@starbeam-lite/*"],
+  "entryPointStrategy": "packages",
+  "out": "../../../doc/@starbeam-lite/core",
+  "skipErrorChecking": true
+}

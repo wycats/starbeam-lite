@@ -1,0 +1,31 @@
+{
+  "name": "starbeam-lite",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "main": "index.js",
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "preview": "turbo preview",
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "@starbeam-dev/eslint-plugin": "^1.0.4",
+    "@types/node": "^20.12.3",
+    "@vitest/ui": "^1.4.0",
+    "esyes": "^1.0.3",
+    "happy-dom": "^14.3.10",
+    "terser": "^5.30.2",
+    "turbo": "^1.13.2",
+    "typedoc": "^0.25.12",
+    "typedoc-material-theme": "^1.0.2",
+    "typescript": "^5.4.3",
+    "vite": "^5.2.7",
+    "vitest": "^1.4.0"
+  },
+  "author": "",
+  "keywords": [],
+  "packageManager": "pnpm@9.0.0-beta.0+sha256.ff1f3981cae5c53ac1f0825645dcb59a53a8e79b654bcb96d2f1f176909fdcfa"
+}
