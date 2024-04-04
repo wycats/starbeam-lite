@@ -10,6 +10,8 @@
     }
   },
   "dependencies": {
+    "read-package-up": "^11.0.0",
+    "resolve-pkg-maps": "^1.0.0",
     "typescript": "^5.4.3",
     "vitest": "^1.4.0"
   }
