@@ -1,5 +1,5 @@
 import { unwrap } from "../utils/assert.js";
-import type { DependencyTag, MutableTag } from "./cell.js";
+import type { MutableTag } from "./cell.js";
 import type { FormulaTag } from "./formula.js";
 import type { TagSnapshot } from "./tag.js";
 
@@ -53,7 +53,7 @@ export class Subscriptions {
     }
   };
 
-  #notify(dependency: DependencyTag) {
+  #notify(dependency: MutableTag) {
     const subscriptions = dependency.subscriptions;
 
     if (subscriptions) {
@@ -82,7 +82,7 @@ export class Subscriptions {
     return (tag.subscription ??= new Subscription());
   }
 
-  #getDependencySubscriptions(tag: DependencyTag): Set<Subscription> {
+  #getDependencySubscriptions(tag: MutableTag): Set<Subscription> {
     return (tag.subscriptions ??= new Set());
   }
 }
@@ -95,7 +95,7 @@ export class Subscriptions {
  * - The formula's dependencies are updated
  */
 export class Subscription {
-  #dependencies: ReadonlySet<DependencyTag> | undefined;
+  #dependencies: ReadonlySet<MutableTag> | undefined;
   readonly #ready = new Set<NotifyReady>();
 
   /**
@@ -125,7 +125,7 @@ export class Subscription {
    * The formula was initialized, and its initial dependencies have been
    * computed.
    */
-  initialized(dependencies: Iterable<DependencyTag>): void {
+  initialized(dependencies: Iterable<MutableTag>): void {
     this.#dependencies = new Set(dependencies);
   }
 
@@ -135,7 +135,7 @@ export class Subscription {
    * This function returns a diff between the old and new dependencies, which
    * contains a list of added and removed dependencies.
    */
-  updated(nextArray: TagSnapshot<DependencyTag>): Diff<DependencyTag> {
+  updated(nextArray: TagSnapshot<MutableTag>): Diff<MutableTag> {
     const prev = this.#dependencies;
     const next = new Set(nextArray);
     this.#dependencies = next;

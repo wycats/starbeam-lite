@@ -1,6 +1,5 @@
 import { expect, it } from "vitest";
-import type { SharedContext } from "../src/coordination";
-import type { Stack } from "../src/stack";
+import type { SharedContext, Stack } from "@starbeam-lite/shared";
 
 const INITIAL_TIMESTAMP = 1;
 const TICK = 1;

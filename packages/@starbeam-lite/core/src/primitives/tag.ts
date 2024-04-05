@@ -1,10 +1,10 @@
 import type { TAG } from "@starbeam-lite/shared";
 
-import type { DependencyTag, MutableTag } from "./cell.js";
+import type { MutableTag } from "./cell.js";
 import type { FormulaTag } from "./formula.js";
 
 export type Tag = MutableTag | FormulaTag;
-export type TagSnapshot<T extends Tag | DependencyTag = Tag> = readonly T[];
+export type TagSnapshot<T extends Tag = Tag> = readonly T[];
 
 export interface Tagged<T> {
   readonly [TAG]: Tag;

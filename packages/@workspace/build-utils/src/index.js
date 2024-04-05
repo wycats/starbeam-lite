@@ -1,15 +1,17 @@
-import { readPackageUpSync } from "read-package-up";
-import { resolveExports } from "resolve-pkg-maps";
+import { listExports } from "@bgotink/list-exports";
+import dts from "vite-plugin-dts";
 import { defineConfig } from "vitest/config";
 
 /**
  * @param {ImportMeta} meta
  * @returns
  */
-export default function (meta) {
-  const pkg = readPackageUpSync({ cwd: meta.url });
-  const exports = pkg?.packageJson.exports;
-  const maps = resolveExports(exports);
+export default async function (meta) {
+  const maps = await listExports(new URL("./package.json", meta.url).pathname, {
+    type: "import",
+  });
+
+  const entries = maps.map((m) => m.path);
 
   return defineConfig({
     test: {
@@ -40,6 +42,9 @@ export default function (meta) {
 
     define: {
       "import.meta.vitest": "undefined",
+      "import.meta.env.fishy": "false",
     },
+
+    plugins: [dts({ rollupTypes: true })],
   });
 }

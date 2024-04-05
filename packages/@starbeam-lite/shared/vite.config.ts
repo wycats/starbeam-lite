@@ -1,3 +1,3 @@
 import build from "@workspace/build-utils";
 
-export default build("./src/index.ts");
+export default await build(import.meta);

@@ -1,7 +1,9 @@
 {
   "extends": "../../../.config/tsconfig.packages.json",
   "compilerOptions": {
+    "types": ["vite/client", "vitest/importMeta"],
     "noEmit": true
   },
-  "include": ["src", "tests", "vite.config.ts"]
+  "include": ["src", "tests", "vite.config.ts"],
+  "exclude": ["tests/node_modules"]
 }

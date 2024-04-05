@@ -33,7 +33,7 @@ export class CachedFormula<T> implements Tagged<T> {
       const value = this.#compute();
       const children = [...done()];
 
-      this.#last = { children: children, validated: now(), value };
+      this.#last = { children, validated: now(), value };
       tag.updated(children);
     } else if (isStale(this.#last)) {
       const done = runtime.start();
@@ -43,9 +43,9 @@ export class CachedFormula<T> implements Tagged<T> {
         children: [...done()],
         validated: now(),
       };
+      tag.updated(this.#last.children);
     }
 
-    tag.updated(this.#last.children);
     runtime.consume(tag);
     return this.#last.value;
   }
