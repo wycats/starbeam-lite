@@ -54,6 +54,9 @@ importers:
       '@rollup/plugin-terser':
         specifier: ^0.4.4
         version: 0.4.4(rollup@4.13.0)
+      '@starbeam-dev/eslint-plugin':
+        specifier: ^1.0.4
+        version: 1.0.4(eslint@8.57.0)(typescript@5.4.3)
       '@swc/core':
         specifier: ^1.4.11
         version: 1.4.11
@@ -96,6 +99,9 @@ importers:
       '@rollup/plugin-terser':
         specifier: ^0.4.4
         version: 0.4.4(rollup@4.13.0)
+      '@starbeam-dev/eslint-plugin':
+        specifier: ^1.0.4
+        version: 1.0.4(eslint@8.57.0)(typescript@5.4.3)
       '@swc/core':
         specifier: ^1.4.11
         version: 1.4.11

@@ -36,7 +36,7 @@ class Computed<out T> {
   #last: { value: T } | null = null;
 
   constructor(compute: () => T) {
-    this.#formula = new CachedFormula(() => compute.call(this));
+    this.#formula = CachedFormula.create(() => compute.call(this));
     FORMULA_MAP.set(this, this.#formula[TAG]);
   }
 

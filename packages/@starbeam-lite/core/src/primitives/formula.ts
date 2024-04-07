@@ -3,7 +3,7 @@ import { TAG } from "@starbeam-lite/shared";
 import type { MutableTag } from "./cell.js";
 import { initialized, start, updated } from "./runtime.js";
 import type { Subscription } from "./subscriptions.js";
-import type { Tagged, TagSnapshot } from "./tag.js";
+import type { Tag, Tagged, TagSnapshot } from "./tag.js";
 
 /**
  * A formula tag represents the validation state of a formula.
@@ -74,10 +74,14 @@ export class FormulaTag {
 }
 
 export class Formula<T> implements Tagged<T> {
+  static create<T>(compute: () => T): Formula<T> {
+    return new Formula(compute);
+  }
+
   [TAG]: FormulaTag = new FormulaTag();
   readonly #compute: () => T;
 
-  constructor(compute: () => T) {
+  private constructor(compute: () => T) {
     this.#compute = compute;
   }
 

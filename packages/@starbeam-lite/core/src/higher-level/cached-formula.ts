@@ -6,6 +6,10 @@ import type { Tagged, TagSnapshot } from "../primitives/tag.js";
 import { lastUpdated } from "../primitives/tag.js";
 
 export class CachedFormula<T> implements Tagged<T> {
+  static create<T>(compute: () => T): CachedFormula<T> {
+    return new CachedFormula(compute);
+  }
+
   readonly #compute: () => T;
   #last: {
     children: TagSnapshot;
@@ -13,17 +17,17 @@ export class CachedFormula<T> implements Tagged<T> {
     value: T;
   } | null = null;
 
-  [TAG]: FormulaTag = new FormulaTag();
+  readonly [TAG]: FormulaTag = new FormulaTag();
 
-  constructor(compute: () => T) {
+  private constructor(compute: () => T) {
     this.#compute = compute;
   }
 
-  read(): T {
+  readonly read = (): T => {
     const value = this.#evaluate();
     runtime.consume(this[TAG]);
     return value;
-  }
+  };
 
   #evaluate() {
     const tag = this[TAG];

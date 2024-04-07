@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
+    "@starbeam-dev/eslint-plugin": "^1.0.4",
     "@swc/core": "^1.4.11",
     "@workspace/build-utils": "workspace:^",
     "rollup-plugin-swc-minify": "^1.1.0",

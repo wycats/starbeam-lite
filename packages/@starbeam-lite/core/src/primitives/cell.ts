@@ -12,23 +12,19 @@ export class MutableTag {
 
   readonly type = "mutable";
   #lastUpdated: number;
+  #dependency: MutableTag | null = this;
   subscriptions: Set<Subscription> | undefined;
-  #frozen = false;
 
   private constructor(revision: number) {
     this.#lastUpdated = revision;
   }
 
   get dependency(): MutableTag | null {
-    return this.#frozen ? null : this;
+    return this.#dependency;
   }
 
   get lastUpdated(): number {
     return this.#lastUpdated;
-  }
-
-  get isFrozen(): boolean {
-    return this.#frozen;
   }
 
   consume(): void {
@@ -38,7 +34,7 @@ export class MutableTag {
   }
 
   mark(): void {
-    if (import.meta.env.DEV && this.#frozen) {
+    if (import.meta.env.DEV && this.#dependency === null) {
       throw new Error("Attempted to update a freezable tag, but it was frozen");
     }
 
@@ -49,7 +45,7 @@ export class MutableTag {
   }
 
   freeze(): void {
-    this.#frozen = true;
+    this.#dependency = null;
   }
 }
 
@@ -64,7 +60,7 @@ export class Cell<T> implements Tagged<T> {
   readonly #equals: Equality<T>;
   readonly [TAG]: MutableTag;
 
-  constructor(value: T, equals: Equality<T> = Object.is) {
+  private constructor(value: T, equals: Equality<T>) {
     this.#value = value;
     this.#equals = equals;
     this[TAG] = MutableTag.create();
