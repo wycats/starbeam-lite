@@ -1,25 +1,9 @@
-import { bump, consume, now, TAG } from "@starbeam-lite/shared";
+import { bump, consume, TAG } from "@starbeam-lite/shared";
 
+import { isFishyUntracked } from "../fishy.js";
 import { notify } from "./runtime.js";
 import type { Subscription } from "./subscriptions.js";
 import type { Tagged } from "./tag.js";
-
-export class DependencyTag {
-  #revision: number;
-  subscriptions: Set<Subscription> | undefined;
-
-  constructor(revision: number) {
-    this.#revision = revision;
-  }
-
-  update(revision: number): void {
-    this.#revision = revision;
-  }
-
-  get lastUpdated(): number {
-    return this.#revision;
-  }
-}
 
 export class MutableTag {
   static create(revision: number = bump()): MutableTag {
@@ -27,47 +11,48 @@ export class MutableTag {
   }
 
   readonly type = "mutable";
-  readonly #tag: DependencyTag;
-  #frozen = false;
+  #lastUpdated: number;
+  #dependency: MutableTag | null = this;
+  subscriptions: Set<Subscription> | undefined;
 
   private constructor(revision: number) {
-    this.#tag = new DependencyTag(revision);
+    this.#lastUpdated = revision;
   }
 
-  get dependency(): DependencyTag | null {
-    return this.#frozen ? null : this.#tag;
+  get dependency(): MutableTag | null {
+    return this.#dependency;
   }
 
   get lastUpdated(): number {
-    return this.#tag.lastUpdated;
-  }
-
-  get isFrozen(): boolean {
-    return this.#frozen;
+    return this.#lastUpdated;
   }
 
   consume(): void {
-    consume(this.#tag);
+    if (!isFishyUntracked()) {
+      consume(this);
+    }
   }
 
   mark(): void {
-    if (import.meta.env.DEV && this.#frozen) {
+    if (import.meta.env.DEV && this.#dependency === null) {
       throw new Error("Attempted to update a freezable tag, but it was frozen");
     }
 
-    this.#tag.update(now());
-    notify(this);
+    if (!isFishyUntracked()) {
+      this.#lastUpdated = bump();
+      notify(this);
+    }
   }
 
   freeze(): void {
-    this.#frozen = true;
+    this.#dependency = null;
   }
 }
 
 export type Equality<T> = (a: T, b: T) => boolean;
 
 export class Cell<T> implements Tagged<T> {
-  static create<T>(value: T, equals = Object.is): Cell<T> {
+  static create<T>(value: T, equals: Equality<T> = Object.is): Cell<T> {
     return new Cell(value, equals);
   }
 
@@ -75,14 +60,15 @@ export class Cell<T> implements Tagged<T> {
   readonly #equals: Equality<T>;
   readonly [TAG]: MutableTag;
 
-  constructor(value: T, equals: Equality<T>) {
+  private constructor(value: T, equals: Equality<T>) {
     this.#value = value;
     this.#equals = equals;
     this[TAG] = MutableTag.create();
   }
 
   read(): T {
-    consume(this[TAG]);
+    this[TAG].consume();
+
     return this.#value;
   }
 
@@ -92,14 +78,14 @@ export class Cell<T> implements Tagged<T> {
     }
 
     this.#value = value;
+
     this[TAG].mark();
 
     return true;
   }
 
   update(updater: (value: T) => T): void {
-    // Intentionally avoid consuming the value in in-place updates.
-    this.set(updater(this.#value));
+    this.set(updater(this.read()));
   }
 
   freeze(): void {

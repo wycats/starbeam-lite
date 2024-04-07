@@ -1,6 +1,7 @@
 {
   "private": true,
   "dependencies": {
+    "@starbeam-lite/core": "workspace:^",
     "@starbeam-lite/shared": "workspace:^"
   }
 }

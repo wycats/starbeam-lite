@@ -10,7 +10,9 @@
     }
   },
   "dependencies": {
+    "@bgotink/list-exports": "^0.1.3",
     "typescript": "^5.4.3",
+    "vite-plugin-dts": "^2.3.0",
     "vitest": "^1.4.0"
   }
 }

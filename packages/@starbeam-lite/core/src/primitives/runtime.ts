@@ -29,6 +29,7 @@ if (import.meta.vitest) {
       events: EventRecorder;
       mutable: MutableTag;
       formula: FormulaTag;
+      runtime: Runtime;
       unsubscribe: () => void;
       record: {
         update: (revision: number) => void;
@@ -40,6 +41,11 @@ if (import.meta.vitest) {
       const { EventRecorder } = await import("@workspace/test-utils");
       const { MutableTag } = await import("./cell.js");
 
+      // creating a new instance of Runtime here verifies that the
+      // implementations of `Cell` and `Formula` do not rely on the runtime
+      // being a singleton.
+      const runtime = new Runtime();
+
       const events = new EventRecorder();
       const mutable = MutableTag.create();
       const formula = new FormulaTag();
@@ -48,7 +54,7 @@ if (import.meta.vitest) {
         events.record("ready");
       };
 
-      const unsubscribe = subscribe(formula, ready);
+      const unsubscribe = runtime.subscribe(formula, ready);
 
       // nothing happens immediately after subscribing
       events.expect([]);
@@ -60,6 +66,7 @@ if (import.meta.vitest) {
       }
 
       return use({
+        runtime,
         events,
         mutable,
         formula,
@@ -71,14 +78,14 @@ if (import.meta.vitest) {
 
   describe("the runtime", () => {
     it("notifies when a subscribed mutable tag is updated", ({
-      ctx: { events, mutable, formula, unsubscribe },
+      ctx: { events, mutable, formula, unsubscribe, runtime },
     }) => {
       // initializing a formula notifies ready callbacks
       formula.updated([mutable]);
       events.expect("ready");
 
       // marking a cell updates the formula, but *before* notifying ready
-      notify(mutable);
+      runtime.notify(mutable);
       events.expect("ready");
 
       // unsubscribing removes the ready callback, but doesn't notify
@@ -87,12 +94,12 @@ if (import.meta.vitest) {
       events.expect([]);
 
       // marking a dependency updates the cell, but doesn't notify subscribers
-      notify(mutable);
+      runtime.notify(mutable);
       events.expect([]);
     });
 
     it("doesn't notify if the formula no longer has the relevant dependency", ({
-      ctx: { events, mutable, formula, unsubscribe },
+      ctx: { events, mutable, formula, unsubscribe, runtime },
     }) => {
       const second = MutableTag.create();
 
@@ -103,7 +110,7 @@ if (import.meta.vitest) {
 
       // Notifying a mutable tag that is a dependency of a formula notifies the
       // formula's subscribers.
-      notify(mutable);
+      runtime.notify(mutable);
       events.expect("ready");
 
       // Updating the formula doesn't notify subscribers, as formulas are only
@@ -113,12 +120,12 @@ if (import.meta.vitest) {
 
       // Notifying a mutable tag that is no longer a dependency does not notify
       // the formula's subscribers.
-      notify(mutable);
+      runtime.notify(mutable);
       events.expect([]);
 
       // Notifying a mutable tag that is newly a dependency notifies the
       // formula's subscribers.
-      notify(second);
+      runtime.notify(second);
       events.expect("ready");
 
       // Unsubscribing removes the ready callback, but doesn't notify
@@ -128,12 +135,12 @@ if (import.meta.vitest) {
 
       // Notifying a mutable tag that is no longer a dependency still does not
       // notify the formula's subscribers.
-      notify(mutable);
+      runtime.notify(mutable);
       events.expect([]);
 
       // Notifying a mutable tag that is still a dependency after unsubscribing
       // does not notify the formula's (no longer active) subscribers.
-      notify(second);
+      runtime.notify(second);
       events.expect([]);
     });
   });

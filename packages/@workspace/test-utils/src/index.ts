@@ -12,3 +12,18 @@ export class EventRecorder {
     this.#events = [];
   }
 }
+
+export class TestScheduler {
+  #queue: Set<() => void> = new Set();
+
+  readonly schedule = (fn: () => void): void => {
+    this.#queue.add(fn);
+  };
+
+  readonly flush = (): void => {
+    for (const fn of this.#queue) {
+      fn();
+    }
+    this.#queue.clear();
+  };
+}

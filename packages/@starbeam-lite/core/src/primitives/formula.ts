@@ -1,9 +1,9 @@
 import { TAG } from "@starbeam-lite/shared";
 
-import type { DependencyTag } from "./cell.js";
+import type { MutableTag } from "./cell.js";
 import { initialized, start, updated } from "./runtime.js";
 import type { Subscription } from "./subscriptions.js";
-import type { Tagged, TagSnapshot } from "./tag.js";
+import type { Tag, Tagged, TagSnapshot } from "./tag.js";
 
 /**
  * A formula tag represents the validation state of a formula.
@@ -41,14 +41,14 @@ export class FormulaTag {
    * The `dependencies` property returns a list of the leaf dependencies of the
    * formula.
    *
-   * Leaf dependencies are {@linkcode DependencyTag}s. Notably, a frozen
-   * {@linkcode MutableTag} produces no leaf dependencies, since it cannot
+   * Leaf dependencies are {@linkcode MutableTags}s. Notably, a frozen
+   * {@linkcode MutableTag} is not considered a dependency, since it cannot
    * change and therefore does not need to be accounted for in the validation
    * algorithm.
    *
    * The purpose of this property is to allow for efficient validation of
    * formula dependencies, since the last updated value of a flat array of
-   * {@linkcode DependencyTag}s is simply:
+   * {@linkcode MutableTag}s is simply:
    *
    * ```js
    * Math.max(...dependencies.map(d => d.lastUpdated))
@@ -61,7 +61,7 @@ export class FormulaTag {
    * dependencies.some(d => d.lastUpdated > lastUpdated)
    * ```
    */
-  get dependencies(): TagSnapshot<DependencyTag> {
+  get dependencies(): TagSnapshot<MutableTag> {
     return [...this.#dependencies].flatMap((tag) => {
       switch (tag.type) {
         case "formula":
@@ -74,10 +74,14 @@ export class FormulaTag {
 }
 
 export class Formula<T> implements Tagged<T> {
+  static create<T>(compute: () => T): Formula<T> {
+    return new Formula(compute);
+  }
+
   [TAG]: FormulaTag = new FormulaTag();
   readonly #compute: () => T;
 
-  constructor(compute: () => T) {
+  private constructor(compute: () => T) {
     this.#compute = compute;
   }
 

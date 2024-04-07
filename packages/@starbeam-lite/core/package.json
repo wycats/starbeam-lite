@@ -4,13 +4,19 @@
   "type": "module",
   "version": "0.0.0",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./fishy": "./src/fishy.ts",
+    "./subtle": "./src/subtle.ts"
   },
   "publishConfig": {
     "exports": {
       ".": {
         "types": "./dist/index.d.ts",
         "default": "./dist/index.js"
+      },
+      "./subtle": {
+        "types": "./dist/subtle.d.ts",
+        "default": "./dist/subtle.js"
       }
     }
   },
@@ -27,14 +33,15 @@
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
-    "@swc/core": "^1.4.11",
+    "@starbeam-dev/eslint-plugin": "^1.0.4",
+    "@swc/core": "^1.4.12",
     "@workspace/build-utils": "workspace:^",
     "@workspace/test-utils": "workspace:^",
     "rollup-plugin-swc-minify": "^1.1.0",
-    "terser": "^5.30.0",
-    "typescript": "^5.4.3",
+    "terser": "^5.30.3",
+    "typescript": "^5.4.4",
     "unplugin-swc": "^1.4.4",
-    "vite": "^5.2.7",
+    "vite": "^5.2.8",
     "vitest": "^1.4.0"
   },
   "peerDependencies": {

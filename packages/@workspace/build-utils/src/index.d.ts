@@ -1,4 +1,4 @@
 import type { UserProjectConfigExport } from "vitest/config";
 
-const DEFAULT: UserProjectConfigExport;
+const DEFAULT: (here: ImportMeta) => UserProjectConfigExport;
 export default DEFAULT;
