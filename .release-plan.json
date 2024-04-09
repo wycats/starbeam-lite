@@ -1,0 +1,37 @@
+{
+  "solution": {
+    "@starbeam-lite/core": {
+      "impact": "patch",
+      "oldVersion": "0.0.0",
+      "newVersion": "0.0.1",
+      "constraints": [
+        {
+          "impact": "patch",
+          "reason": "Appears in changelog section :bug: Bug Fix"
+        },
+        {
+          "impact": "patch",
+          "reason": "Appears in changelog section :house: Internal"
+        }
+      ],
+      "pkgJSONPath": "./packages/@starbeam-lite/core/package.json"
+    },
+    "@starbeam-lite/shared": {
+      "impact": "patch",
+      "oldVersion": "0.0.0",
+      "newVersion": "0.0.1",
+      "constraints": [
+        {
+          "impact": "patch",
+          "reason": "Appears in changelog section :bug: Bug Fix"
+        },
+        {
+          "impact": "patch",
+          "reason": "Appears in changelog section :house: Internal"
+        }
+      ],
+      "pkgJSONPath": "./packages/@starbeam-lite/shared/package.json"
+    }
+  },
+  "description": "## Release (2024-04-09)\n\n@starbeam-lite/core 0.0.1 (patch)\n@starbeam-lite/shared 0.0.1 (patch)\n\n#### :bug: Bug Fix\n* `@starbeam-lite/core`, `@starbeam-lite/shared`\n  * [#4](https://github.com/starbeamjs/starbeam-lite/pull/4) Add files to package.jsons so that we don't publish tests to npm ([@NullVoxPopuli](https://github.com/NullVoxPopuli))\n\n#### :house: Internal\n* `@starbeam-lite/core`\n  * [#10](https://github.com/starbeamjs/starbeam-lite/pull/10) Also update peer range to `~` ([@NullVoxPopuli](https://github.com/NullVoxPopuli))\n  * [#7](https://github.com/starbeamjs/starbeam-lite/pull/7) Narrow supported range of the shared package ([@NullVoxPopuli](https://github.com/NullVoxPopuli))\n* Other\n  * [#8](https://github.com/starbeamjs/starbeam-lite/pull/8) Update lockfile ([@NullVoxPopuli](https://github.com/NullVoxPopuli))\n* `@starbeam-lite/core`, `@starbeam-lite/shared`\n  * [#6](https://github.com/starbeamjs/starbeam-lite/pull/6) Ensure all packages have a name ([@NullVoxPopuli](https://github.com/NullVoxPopuli))\n\n#### Committers: 1\n- [@NullVoxPopuli](https://github.com/NullVoxPopuli)\n"
+}
