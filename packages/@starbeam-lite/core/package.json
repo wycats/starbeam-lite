@@ -1,7 +1,7 @@
 {
   "name": "@starbeam-lite/core",
   "type": "module",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "exports": {
     ".": "./src/index.ts",
     "./fishy": "./src/fishy.ts",
@@ -47,7 +47,10 @@
   "peerDependencies": {
     "@starbeam-lite/shared": "workspace:~"
   },
-  "files": ["dist", "src"],
+  "files": [
+    "dist",
+    "src"
+  ],
   "peerDependenciesMeta": {
     "@starbeam-lite/shared": {
       "optional": true
