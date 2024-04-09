@@ -1,5 +1,6 @@
 {
   "private": true,
+  "name": "@workspace/core-tests",
   "dependencies": {
     "@starbeam-lite/core": "workspace:^",
     "@starbeam-lite/shared": "workspace:^"
