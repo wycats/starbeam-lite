@@ -47,6 +47,7 @@
   "peerDependencies": {
     "@starbeam-lite/shared": "workspace:^"
   },
+  "files": ["dist", "src"],
   "peerDependenciesMeta": {
     "@starbeam-lite/shared": {
       "optional": true
