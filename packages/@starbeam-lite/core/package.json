@@ -29,7 +29,7 @@
     "test": "vitest --run"
   },
   "dependencies": {
-    "@starbeam-lite/shared": "workspace:^"
+    "@starbeam-lite/shared": "workspace:~"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
