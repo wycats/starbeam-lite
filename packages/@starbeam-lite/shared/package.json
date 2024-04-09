@@ -19,6 +19,7 @@
     "dev": "vite --clearScreen false",
     "docs": "typedoc",
     "lint": "eslint \"src/**/*.ts\"",
+    "prepack": "pnpm build",
     "preview": "vite preview",
     "test": "vitest --run"
   },
