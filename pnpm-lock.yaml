@@ -51,7 +51,7 @@ importers:
   packages/@starbeam-lite/core:
     dependencies:
       '@starbeam-lite/shared':
-        specifier: workspace:^
+        specifier: workspace:~
         version: link:../shared
     devDependencies:
       '@rollup/plugin-terser':
