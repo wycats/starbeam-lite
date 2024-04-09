@@ -1,5 +1,4 @@
 {
-  "private": true,
   "name": "@starbeam-lite/core",
   "type": "module",
   "version": "0.0.0",
@@ -25,6 +24,7 @@
     "dev": "vite --clearScreen false",
     "docs": "typedoc",
     "lint": "eslint \"src/**/*.ts\"",
+    "prepack": "pnpm build",
     "preview": "vite preview",
     "test": "vitest --run"
   },
