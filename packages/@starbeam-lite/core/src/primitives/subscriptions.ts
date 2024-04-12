@@ -1,6 +1,16 @@
+import type {
+  FormulaTag as FormulaTagFields,
+  StorageTag as StorageTagFields,
+  Subscription as ISubscription,
+} from "@starbeam-lite/shared/kernel";
+import {
+  DEPENDENCIES_FIELD,
+  MUTABLE_STORAGE_TYPE,
+  SUBSCRIPTIONS_FIELD,
+  TYPE_FIELD,
+} from "@starbeam-lite/shared/kernel";
+
 import { unwrap } from "../utils/assert.js";
-import type { MutableTag } from "./cell.js";
-import type { FormulaTag } from "./formula.js";
 import type { TagSnapshot } from "./tag.js";
 
 export type Unsubscribe = () => void;
@@ -8,7 +18,7 @@ export type NotifyReady = () => void;
 
 export class Subscriptions {
   readonly subscribe = (
-    target: FormulaTag,
+    target: FormulaTagFields,
     ready: NotifyReady
   ): Unsubscribe => {
     this.#subscribe(target, ready);
@@ -16,24 +26,30 @@ export class Subscriptions {
     return () => void this.#unsubscribe(target, ready);
   };
 
-  readonly initialized = (target: FormulaTag): void => {
-    const subscription = target.subscription;
+  readonly initialized = (
+    target: FormulaTagFields,
+    dependencies: TagSnapshot
+  ): void => {
+    const subscription = target[SUBSCRIPTIONS_FIELD];
 
     if (subscription) {
-      for (const added of target.dependencies) {
+      for (const added of dependencies) {
         this.#getDependencySubscriptions(added).add(subscription);
       }
 
-      subscription.initialized(target.dependencies);
+      subscription.initialized(dependencies);
       subscription.notify();
     }
   };
 
-  readonly updated = (formula: FormulaTag): void => {
-    const subscription = formula.subscription;
+  readonly updated = (
+    formula: FormulaTagFields,
+    dependencies: TagSnapshot
+  ): void => {
+    const subscription = formula[SUBSCRIPTIONS_FIELD];
 
     if (subscription) {
-      const diff = subscription.updated(formula.dependencies);
+      const diff = subscription.updated(dependencies);
 
       for (const added of diff.add) {
         this.#getDependencySubscriptions(added).add(subscription);
@@ -45,16 +61,14 @@ export class Subscriptions {
     }
   };
 
-  readonly notify = (tag: MutableTag): void => {
-    const dependency = tag.dependency;
-
-    if (dependency) {
-      this.#notify(dependency);
+  readonly notify = (tag: StorageTagFields): void => {
+    if (tag[TYPE_FIELD] === MUTABLE_STORAGE_TYPE) {
+      this.#notify(tag);
     }
   };
 
-  #notify(dependency: MutableTag) {
-    const subscriptions = dependency.subscriptions;
+  #notify(dependency: StorageTagFields) {
+    const subscriptions = dependency[SUBSCRIPTIONS_FIELD];
 
     if (subscriptions) {
       for (const subscription of subscriptions) {
@@ -63,12 +77,12 @@ export class Subscriptions {
     }
   }
 
-  #unsubscribe(target: FormulaTag, ready: NotifyReady): void {
-    unwrap(target.subscription).unsubscribe(ready);
+  #unsubscribe(target: FormulaTagFields, ready: NotifyReady): void {
+    unwrap(target[SUBSCRIPTIONS_FIELD]).unsubscribe(ready);
   }
 
-  #subscribe(target: FormulaTag, ready: NotifyReady): void {
-    const dependencies = target.dependencies;
+  #subscribe(target: FormulaTagFields, ready: NotifyReady): void {
+    const dependencies = target[DEPENDENCIES_FIELD];
     const subscription = this.#getFormulaSubscription(target);
 
     for (const dependency of dependencies) {
@@ -78,12 +92,12 @@ export class Subscriptions {
     subscription.subscribe(ready);
   }
 
-  #getFormulaSubscription(tag: FormulaTag): Subscription {
-    return (tag.subscription ??= new Subscription());
+  #getFormulaSubscription(tag: FormulaTagFields): ISubscription {
+    return (tag[SUBSCRIPTIONS_FIELD] ??= new Subscription());
   }
 
-  #getDependencySubscriptions(tag: MutableTag): Set<Subscription> {
-    return (tag.subscriptions ??= new Set());
+  #getDependencySubscriptions(tag: StorageTagFields): Set<ISubscription> {
+    return (tag[SUBSCRIPTIONS_FIELD] ??= new Set());
   }
 }
 
@@ -94,8 +108,8 @@ export class Subscriptions {
  * - The formula is initialized
  * - The formula's dependencies are updated
  */
-export class Subscription {
-  #dependencies: ReadonlySet<MutableTag> | undefined;
+export class Subscription implements ISubscription {
+  #dependencies: ReadonlySet<StorageTagFields> | undefined;
   readonly #ready = new Set<NotifyReady>();
 
   /**
@@ -125,7 +139,7 @@ export class Subscription {
    * The formula was initialized, and its initial dependencies have been
    * computed.
    */
-  initialized(dependencies: Iterable<MutableTag>): void {
+  initialized(dependencies: readonly StorageTagFields[]): void {
     this.#dependencies = new Set(dependencies);
   }
 
@@ -135,7 +149,7 @@ export class Subscription {
    * This function returns a diff between the old and new dependencies, which
    * contains a list of added and removed dependencies.
    */
-  updated(nextArray: TagSnapshot<MutableTag>): Diff<MutableTag> {
+  updated(nextArray: TagSnapshot): Diff<StorageTagFields> {
     const prev = this.#dependencies;
     const next = new Set(nextArray);
     this.#dependencies = next;

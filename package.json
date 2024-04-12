@@ -13,18 +13,17 @@
   },
   "devDependencies": {
     "@starbeam-dev/eslint-plugin": "^1.0.4",
-    "@types/node": "^20.12.5",
+    "@types/node": "^20.12.7",
     "@vitest/ui": "^1.4.0",
     "esyes": "^1.0.3",
-    "happy-dom": "^14.6.1",
     "release-plan": "^0.9.0",
     "terser": "^5.30.3",
     "turbo": "^1.13.2",
-    "typedoc": "^0.25.12",
-    "typedoc-material-theme": "^1.0.2",
+    "typedoc": "^0.25.13",
     "typescript": "^5.4.4",
     "vite": "^5.2.8",
-    "vitest": "^1.4.0"
+    "vitest": "^1.4.0",
+    "yalc": "^1.0.0-pre.53"
   },
   "author": "",
   "keywords": [],

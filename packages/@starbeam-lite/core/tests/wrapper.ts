@@ -1,12 +1,16 @@
-import { CachedFormula, Cell, Formula } from "@starbeam-lite/core";
-import { FormulaTag, MutableTag, subscribe } from "@starbeam-lite/core/subtle";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { CachedFormula, Cell } from "@starbeam-lite/core";
+import { FormulaTag, subscribe, updated } from "@starbeam-lite/core/subtle";
 import { TAG } from "@starbeam-lite/shared";
-import { untrack } from "@starbeam-lite/core/fishy";
+import type {
+  FormulaTag as FormulaTagFields,
+  StorageTag as StorageTagFields,
+} from "@starbeam-lite/shared/kernel";
 
-const CELL_MAP = new WeakMap<MutableTag, State<any>>();
+const CELL_MAP = new WeakMap<StorageTagFields, State<any>>();
 
 class State<in out T> {
-  #cell: Cell<T>;
+  readonly #cell: Cell<T>;
 
   constructor(
     value: T,
@@ -16,7 +20,7 @@ class State<in out T> {
     CELL_MAP.set(this.#cell[TAG], this);
   }
 
-  get [TAG]() {
+  get [TAG](): StorageTagFields {
     return this.#cell[TAG];
   }
 
@@ -24,23 +28,23 @@ class State<in out T> {
     return this.#cell.read();
   }
 
-  set(value: T) {
+  set(value: T): void {
     this.#cell.set(value);
   }
 }
 
-const FORMULA_MAP = new WeakMap<Computed<unknown>, FormulaTag>();
+const FORMULA_MAP = new WeakMap<Computed<unknown>, FormulaTagFields>();
 
 class Computed<out T> {
-  #formula: CachedFormula<T>;
+  readonly #formula: CachedFormula<T>;
   #last: { value: T } | null = null;
 
   constructor(compute: () => T) {
-    this.#formula = CachedFormula.create(() => compute.call(this));
+    this.#formula = CachedFormula(() => compute.call(this));
     FORMULA_MAP.set(this, this.#formula[TAG]);
   }
 
-  get [TAG]() {
+  get [TAG](): FormulaTagFields {
     return this.#formula[TAG];
   }
 
@@ -62,24 +66,24 @@ class Computed<out T> {
 }
 
 class Watcher {
-  #callback: () => void;
-  #unwatch = new WeakMap<State<any> | Computed<any>, () => void>();
+  readonly #callback: () => void;
+  readonly #unwatch = new WeakMap<State<any> | Computed<any>, () => void>();
 
   constructor(callback: () => void) {
     this.#callback = callback;
   }
 
-  watch<T>(signal: State<T> | Computed<T>) {
+  watch<T>(signal: State<T> | Computed<T>): void {
     if (signal instanceof Computed) {
       this.#unwatch.set(signal, subscribe(signal[TAG], this.#callback));
     } else {
-      const tag = new FormulaTag();
-      tag.updated([signal[TAG]]);
+      const tag = FormulaTag();
+      updated([signal[TAG]], signal[TAG].lastUpdated);
       this.#unwatch.set(signal, subscribe(tag, this.#callback));
     }
   }
 
-  unwatch<T>(signal: State<T> | Computed<T>) {
+  unwatch<T>(signal: State<T> | Computed<T>): void {
     this.#unwatch.get(signal)?.();
     this.#unwatch.delete(signal);
   }
@@ -95,16 +99,18 @@ export const Signal = {
     watched: Symbol("Signal.subtle.watched"),
     unwatched: Symbol("Signal.subtle.unwatched"),
 
-    introspectSources(computed: Computed<unknown>) {
+    introspectSources(computed: Computed<unknown>): State<any>[] {
       const formula = FORMULA_MAP.get(computed);
 
       if (formula) {
-        return formula.dependencies.map((tag) => CELL_MAP.get(tag));
+        return formula.dependencies
+          .map((tag) => CELL_MAP.get(tag))
+          .filter(PRESENT);
       } else {
         return [];
       }
     },
-
-    untrack,
   },
 };
+
+const PRESENT = Boolean as unknown as <T>(value: T | undefined) => value is T;

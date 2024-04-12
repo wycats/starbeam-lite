@@ -25,18 +25,11 @@ export default async function (meta) {
     },
 
     build: {
+      target: "es2022",
+      minify: true,
       lib: {
         entry: entries,
         formats: ["es"],
-      },
-
-      minify: true,
-      terserOptions: {
-        compress: {
-          reduce_funcs: true,
-          unsafe_arrows: true,
-          passes: 2,
-        },
       },
     },
 

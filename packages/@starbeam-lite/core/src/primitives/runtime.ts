@@ -1,10 +1,13 @@
 import * as shared from "@starbeam-lite/shared";
+import type {
+  FormulaTag as FormulaTagFields,
+  StorageTag as StorageTagFields,
+} from "@starbeam-lite/shared/kernel";
+import { LAST_UPDATED_FIELD } from "@starbeam-lite/shared/kernel";
 import type { EventRecorder } from "@workspace/test-utils";
 
-import { MutableTag } from "./cell.js";
 import { FormulaTag } from "./formula.js";
 import { Subscriptions } from "./subscriptions.js";
-import type { Tag } from "./tag.js";
 
 class Runtime {
   readonly #subscriptions = new Subscriptions();
@@ -15,20 +18,19 @@ class Runtime {
   readonly notify = this.#subscriptions.notify;
 }
 
-export const consume = shared.consume<Tag>;
-export const start = shared.start<Tag>;
-
 const { subscribe, notify, updated, initialized } = new Runtime();
 export { initialized, notify, subscribe, updated };
 
 if (import.meta.vitest) {
   const { test, describe } = import.meta.vitest;
 
+  const { updated } = await import("./formula.js");
+
   const it = test.extend<{
     ctx: {
       events: EventRecorder;
-      mutable: MutableTag;
-      formula: FormulaTag;
+      mutable: StorageTagFields;
+      formula: FormulaTagFields;
       runtime: Runtime;
       unsubscribe: () => void;
       record: {
@@ -47,8 +49,8 @@ if (import.meta.vitest) {
       const runtime = new Runtime();
 
       const events = new EventRecorder();
-      const mutable = MutableTag.create();
-      const formula = new FormulaTag();
+      const mutable = MutableTag();
+      const formula = FormulaTag();
 
       const ready = () => {
         events.record("ready");
@@ -80,8 +82,8 @@ if (import.meta.vitest) {
     it("notifies when a subscribed mutable tag is updated", ({
       ctx: { events, mutable, formula, unsubscribe, runtime },
     }) => {
-      // initializing a formula notifies ready callbacks
-      formula.updated([mutable]);
+      // initializing aready callbacks
+      updated(formula, [mutable], mutable[LAST_UPDATED_FIELD]);
       events.expect("ready");
 
       // marking a cell updates the formula, but *before* notifying ready
@@ -98,14 +100,16 @@ if (import.meta.vitest) {
       events.expect([]);
     });
 
-    it("doesn't notify if the formula no longer has the relevant dependency", ({
+    it("doesn't notify if the formula no longer has the relevant dependency", async ({
       ctx: { events, mutable, formula, unsubscribe, runtime },
     }) => {
-      const second = MutableTag.create();
+      const { MutableTag } = await import("./cell.js");
+
+      const second = MutableTag();
 
       // Initializing a formula notifies ready callbacks, as initialization is
       // semantically equivalent to a mutable tag being updated.
-      formula.updated([mutable]);
+      updated(formula, [mutable], mutable[LAST_UPDATED_FIELD]);
       events.expect("ready");
 
       // Notifying a mutable tag that is a dependency of a formula notifies the
@@ -115,7 +119,7 @@ if (import.meta.vitest) {
 
       // Updating the formula doesn't notify subscribers, as formulas are only
       // updated when read, in response to a prior notification.
-      formula.updated([second]);
+      updated(formula, [second], second[LAST_UPDATED_FIELD]);
       events.expect([]);
 
       // Notifying a mutable tag that is no longer a dependency does not notify

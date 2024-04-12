@@ -14,7 +14,7 @@ export class EventRecorder {
 }
 
 export class TestScheduler {
-  #queue: Set<() => void> = new Set();
+  readonly #queue = new Set<() => void>();
 
   readonly schedule = (fn: () => void): void => {
     this.#queue.add(fn);

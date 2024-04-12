@@ -4,7 +4,6 @@
   "version": "0.0.1",
   "exports": {
     ".": "./src/index.ts",
-    "./fishy": "./src/fishy.ts",
     "./subtle": "./src/subtle.ts"
   },
   "publishConfig": {
@@ -26,21 +25,17 @@
     "lint": "eslint \"src/**/*.ts\"",
     "prepack": "pnpm build",
     "preview": "vite preview",
+    "publish:local": "pnpm pack && cp *.tgz $LOCAL_TARGET",
     "test": "vitest --run"
   },
   "dependencies": {
     "@starbeam-lite/shared": "workspace:~"
   },
   "devDependencies": {
-    "@rollup/plugin-terser": "^0.4.4",
     "@starbeam-dev/eslint-plugin": "^1.0.4",
-    "@swc/core": "^1.4.12",
     "@workspace/build-utils": "workspace:^",
     "@workspace/test-utils": "workspace:^",
-    "rollup-plugin-swc-minify": "^1.1.0",
-    "terser": "^5.30.3",
     "typescript": "^5.4.4",
-    "unplugin-swc": "^1.4.4",
     "vite": "^5.2.8",
     "vitest": "^1.4.0"
   },

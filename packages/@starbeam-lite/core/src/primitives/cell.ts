@@ -1,52 +1,30 @@
 import { bump, consume, TAG } from "@starbeam-lite/shared";
+import type { StorageTag as StorageTagFields } from "@starbeam-lite/shared/kernel";
+import {
+  FROZEN_STORAGE_TYPE,
+  LAST_UPDATED_FIELD,
+  MUTABLE_STORAGE_TYPE,
+  TYPE_FIELD,
+} from "@starbeam-lite/shared/kernel";
 
-import { isFishyUntracked } from "../fishy.js";
 import { notify } from "./runtime.js";
-import type { Subscription } from "./subscriptions.js";
 import type { Tagged } from "./tag.js";
 
-export class MutableTag {
-  static create(revision: number = bump()): MutableTag {
-    return new MutableTag(revision);
+export function MutableTag(revision = bump()): StorageTagFields {
+  return [MUTABLE_STORAGE_TYPE, revision, null];
+}
+
+export function mark(tag: StorageTagFields): void {
+  if (import.meta.env.DEV && tag[TYPE_FIELD] === FROZEN_STORAGE_TYPE) {
+    throw new Error("Attempted to update a frozen tag");
   }
 
-  readonly type = "mutable";
-  #lastUpdated: number;
-  #dependency: MutableTag | null = this;
-  subscriptions: Set<Subscription> | undefined;
+  tag[LAST_UPDATED_FIELD] = bump();
+  notify(tag);
+}
 
-  private constructor(revision: number) {
-    this.#lastUpdated = revision;
-  }
-
-  get dependency(): MutableTag | null {
-    return this.#dependency;
-  }
-
-  get lastUpdated(): number {
-    return this.#lastUpdated;
-  }
-
-  consume(): void {
-    if (!isFishyUntracked()) {
-      consume(this);
-    }
-  }
-
-  mark(): void {
-    if (import.meta.env.DEV && this.#dependency === null) {
-      throw new Error("Attempted to update a freezable tag, but it was frozen");
-    }
-
-    if (!isFishyUntracked()) {
-      this.#lastUpdated = bump();
-      notify(this);
-    }
-  }
-
-  freeze(): void {
-    this.#dependency = null;
-  }
+export function freeze(tag: StorageTagFields): void {
+  tag[TYPE_FIELD] = FROZEN_STORAGE_TYPE;
 }
 
 export type Equality<T> = (a: T, b: T) => boolean;
@@ -58,16 +36,16 @@ export class Cell<T> implements Tagged<T> {
 
   #value: T;
   readonly #equals: Equality<T>;
-  readonly [TAG]: MutableTag;
+  readonly [TAG]: StorageTagFields;
 
   private constructor(value: T, equals: Equality<T>) {
     this.#value = value;
     this.#equals = equals;
-    this[TAG] = MutableTag.create();
+    this[TAG] = MutableTag();
   }
 
   read(): T {
-    this[TAG].consume();
+    consume(this[TAG]);
 
     return this.#value;
   }
@@ -79,7 +57,7 @@ export class Cell<T> implements Tagged<T> {
 
     this.#value = value;
 
-    this[TAG].mark();
+    mark(this[TAG]);
 
     return true;
   }
@@ -89,7 +67,7 @@ export class Cell<T> implements Tagged<T> {
   }
 
   freeze(): void {
-    this[TAG].freeze();
+    freeze(this[TAG]);
   }
 }
 

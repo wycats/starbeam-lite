@@ -1,66 +1,34 @@
-import { now, TAG } from "@starbeam-lite/shared";
+import { now, start, TAG } from "@starbeam-lite/shared";
+import type { FormulaTag as FormulaTagFields } from "@starbeam-lite/shared/kernel";
+import { LAST_UPDATED_FIELD } from "@starbeam-lite/shared/kernel";
 
-import { FormulaTag } from "../primitives/formula.js";
-import * as runtime from "../primitives/runtime.js";
-import type { Tagged, TagSnapshot } from "../primitives/tag.js";
-import { lastUpdated } from "../primitives/tag.js";
+import { FormulaTag, updated } from "../primitives/formula.js";
+import type { Tagged } from "../primitives/tag.js";
 
-export class CachedFormula<T> implements Tagged<T> {
-  static create<T>(compute: () => T): CachedFormula<T> {
-    return new CachedFormula(compute);
-  }
+const LAST_VALIDATED = 0;
+const LAST_VALUE = 1;
 
-  readonly #compute: () => T;
-  #last: {
-    children: TagSnapshot;
-    validated: number;
-    value: T;
-  } | null = null;
+export type CachedFormula<T> = Tagged<T> & { [TAG]: FormulaTagFields };
 
-  readonly [TAG]: FormulaTag = new FormulaTag();
+export function CachedFormula<T>(compute: () => T): CachedFormula<T> {
+  const tag = FormulaTag();
 
-  private constructor(compute: () => T) {
-    this.#compute = compute;
-  }
+  let last: [lastValidated: number, lastValue: T] | null = null;
 
-  readonly read = (): T => {
-    const value = this.#evaluate();
-    runtime.consume(this[TAG]);
-    return value;
+  return {
+    [TAG]: tag,
+    read: () => {
+      if (last === null || tag[LAST_UPDATED_FIELD] > last[LAST_VALIDATED]) {
+        const done = start();
+        const value = compute();
+        const [lastUpdated, tags] = done();
+        updated(tag, [...tags], lastUpdated);
+
+        last = [now(), value];
+        return value;
+      } else {
+        return last[LAST_VALUE];
+      }
+    },
   };
-
-  #evaluate() {
-    const tag = this[TAG];
-
-    if (this.#last === null) {
-      const done = runtime.start();
-      const value = this.#compute();
-      const children = [...done()];
-
-      this.#last = { children, validated: now(), value };
-      tag.updated(children);
-    } else if (isStale(this.#last)) {
-      const done = runtime.start();
-
-      this.#last = {
-        value: this.#compute(),
-        children: [...done()],
-        validated: now(),
-      };
-      tag.updated(this.#last.children);
-    }
-
-    runtime.consume(tag);
-    return this.#last.value;
-  }
-}
-
-function isStale({
-  children,
-  validated,
-}: {
-  children: TagSnapshot;
-  validated: number;
-}) {
-  return Math.max(...children.map(lastUpdated)) > validated;
 }

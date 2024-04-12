@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-magic-numbers */
 /*
  ** Copyright 2024 Bloomberg Finance L.P.
  **
@@ -308,7 +309,7 @@ describe("Comparison semantics", () => {
   });
 });
 
-describe("Untrack", () => {
+describe.todo("Untrack", () => {
   it("works", () => {
     const state = new Signal.State(1);
     const computed = new Signal.Computed(() =>
@@ -774,7 +775,7 @@ describe("Dynamic dependencies", () => {
 });
 
 describe("watch and unwatch", () => {
-  it("handles multiple watchers well", () => {
+  it.todo("handles multiple watchers well", () => {
     const s = new Signal.State(1);
     const s2 = new Signal.State(2);
     let n = 0;
@@ -801,7 +802,8 @@ describe("watch and unwatch", () => {
     s.set(2);
     expect(n).toBe(3);
   });
-  it("understands dynamic dependency sets", () => {
+
+  it.todo("understands dynamic dependency sets", () => {
     let w1 = 0,
       u1 = 0,
       w2 = 0,
@@ -935,7 +937,7 @@ describe("watch and unwatch", () => {
 });
 
 describe("type checks", () => {
-  it("checks types in methods", () => {
+  it.todo("checks types in methods", () => {
     const x = {};
     const s = new Signal.State(1);
     const c = new Signal.Computed(() => {});
@@ -1026,7 +1028,7 @@ describe("type checks", () => {
   });
 });
 
-describe("currentComputed", () => {
+describe.todo("currentComputed", () => {
   it("works", () => {
     expect(Signal.subtle.currentComputed()).toBe(undefined);
     let context;

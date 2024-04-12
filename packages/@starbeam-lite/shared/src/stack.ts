@@ -1,31 +1,52 @@
 import { buildSharedContext } from "./coordination.js";
+import type { StorageTag } from "./kernel.js";
+import { LAST_UPDATED_FIELD } from "./kernel.js";
 
 export type Stack = [
-  start: <const T extends object>() => () => ReadonlySet<T>,
-  consume: <const T extends object>(tag: T) => void,
+  start: () => () => [
+    lastUpdated: number,
+    dependencies: ReadonlySet<StorageTag>,
+  ],
+  consume: (tag: StorageTag) => void,
 ];
 
 const context = buildSharedContext();
 
+const NO_TAGS = -1;
+
+class TrackingFrame {
+  readonly #tags = new Set<StorageTag>();
+  #lastUpdated = NO_TAGS;
+
+  add(tag: StorageTag) {
+    this.#lastUpdated = Math.max(this.#lastUpdated, tag[LAST_UPDATED_FIELD]);
+    this.#tags.add(tag);
+  }
+
+  done(): [lastUpdated: number, dependencies: ReadonlySet<StorageTag>] {
+    return [this.#lastUpdated, this.#tags];
+  }
+}
+
 const [start, consume] = (context.stack ??= (() => {
-  let current = new Set<object>();
+  let current = new TrackingFrame();
 
   return [
-    <const T extends object>() => {
+    () => {
       const prev = current;
-      current = new Set<T>();
+      current = new TrackingFrame();
 
       return () => {
         const result = current;
         current = prev;
-        return result as T;
+        return result.done();
       };
     },
 
-    (tag: object) => {
+    (tag: StorageTag) => {
       current.add(tag);
     },
-  ] satisfies Stack;
+  ] as Stack;
 })());
 
 export { consume, start };

@@ -1,8 +1,9 @@
-import { CachedFormula, Cell, Formula } from "@starbeam-lite/core";
+/* eslint-disable @typescript-eslint/no-magic-numbers */
+import { Cell, Formula, SyncOut } from "@starbeam-lite/core";
+import { runtime } from "@starbeam-lite/core/subtle";
+import { TAG } from "@starbeam-lite/shared";
 import { EventRecorder, TestScheduler } from "@workspace/test-utils";
 import { describe, expect, it } from "vitest";
-import { subscribe } from "../src/subtle";
-import { TAG } from "@starbeam-lite/shared";
 
 describe("subscribe", () => {
   describe("equivalent to Signal.subtle.Watcher (ported tests)", () => {
@@ -33,7 +34,7 @@ describe("subscribe", () => {
       // integration, this would be used to schedule the flush to happen in a
       // framework-appropriate timing (something like `useEffect` or
       // `onMounted`).
-      scheduler.schedule(sync.read);
+      scheduler.schedule(sync.poll);
 
       // Since the scheduler has not flushed yet, there should be no recorded
       // events yet.
@@ -49,14 +50,14 @@ describe("subscribe", () => {
         formula: 10,
       });
 
-      const unsubscribe = subscribe(sync[TAG], () => {
+      const _unsubscribe = runtime.subscribe(sync[TAG], () => {
         events.record("ready");
 
         // Use the test scheduler to accumulate `sync.read()` as a pending
         // event. In a real-world integration, this would be used to schedule
         // the flush to happen in a framework-appropriate timing (something like
         // `useEffect` or `onBeforeUpdate`).
-        scheduler.schedule(sync.read);
+        scheduler.schedule(sync.poll);
       });
 
       events.expect([]);
@@ -93,10 +94,3 @@ describe("subscribe", () => {
     });
   });
 });
-
-function SyncOut(flush: () => void): CachedFormula<void> {
-  return CachedFormula.create(() => {
-    // in principle, this should have a write barrier
-    flush();
-  });
-}
