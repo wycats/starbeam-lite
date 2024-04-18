@@ -188,8 +188,6 @@ export interface Subscription {
     readonly remove: ReadonlySet<StorageTag>;
   };
 
-  initialized: (dependencies: readonly StorageTag[]) => void;
-
   /**
    * Register a callback to be called when the formula is ready. A runtime
    * implementation MUST call

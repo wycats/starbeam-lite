@@ -26,22 +26,6 @@ export class Subscriptions {
     return () => void this.#unsubscribe(target, ready);
   };
 
-  readonly initialized = (
-    target: FormulaTagFields,
-    dependencies: TagSnapshot
-  ): void => {
-    const subscription = target[SUBSCRIPTIONS_FIELD];
-
-    if (subscription) {
-      for (const added of dependencies) {
-        this.#getDependencySubscriptions(added).add(subscription);
-      }
-
-      subscription.initialized(dependencies);
-      subscription.notify();
-    }
-  };
-
   readonly updated = (
     formula: FormulaTagFields,
     dependencies: TagSnapshot
@@ -133,14 +117,6 @@ export class Subscription implements ISubscription {
     for (const ready of this.#ready) {
       ready();
     }
-  }
-
-  /**
-   * The formula was initialized, and its initial dependencies have been
-   * computed.
-   */
-  initialized(dependencies: readonly StorageTagFields[]): void {
-    this.#dependencies = new Set(dependencies);
   }
 
   /**

@@ -1,4 +1,4 @@
-import { consume, start, TAG } from "@starbeam-lite/shared";
+import { begin, commit, consume, TAG } from "@starbeam-lite/shared";
 import type { FormulaTag as FormulaTagFields } from "@starbeam-lite/shared/kernel";
 import {
   DEPENDENCIES_FIELD,
@@ -25,12 +25,14 @@ export function updated(
 ): void {
   tag[DEPENDENCIES_FIELD] = tags;
   tag[LAST_UPDATED_FIELD] = lastUpdated;
+  runtime.updated(tag, tags);
 
-  if (tag[TYPE_FIELD] === INITIALIZED_FORMULA_TYPE) {
-    runtime.updated(tag, tags);
-  } else {
-    runtime.initialized(tag, tags);
+  if (tag[TYPE_FIELD] === UNINITIALIZED_FORMULA_TYPE) {
     tag[TYPE_FIELD] = INITIALIZED_FORMULA_TYPE;
+
+    for (const newTag of tags) {
+      runtime.notify(newTag);
+    }
   }
 }
 
@@ -50,26 +52,21 @@ export class Formula<T> implements Tagged<T> {
   }
 
   read(): T {
-    const tag = this[TAG];
-
-    const [value, tags, lastUpdated] = evaluate(this.#compute);
-
-    runtime.updated(tag, tags);
-    tag[LAST_UPDATED_FIELD] = lastUpdated;
-
-    for (const tag of tags) {
-      consume(tag);
-    }
-
-    return value;
+    return evaluate(this.#compute, this[TAG]);
   }
 }
 
-function evaluate<T>(
-  compute: () => T
-): [value: T, tags: TagSnapshot, lastUpdated: number] {
-  const done = start();
+function evaluate<T>(compute: () => T, tag: FormulaTagFields): T {
+  begin();
   const value = compute();
-  const [lastUpdated, tags] = done();
-  return [value, [...tags], lastUpdated];
+  const [lastUpdated, tags] = commit();
+
+  runtime.updated(tag, [...tags]);
+  tag[LAST_UPDATED_FIELD] = lastUpdated;
+
+  for (const tag of tags) {
+    consume(tag);
+  }
+
+  return value;
 }

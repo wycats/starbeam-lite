@@ -3,10 +3,8 @@ import type { StorageTag } from "./kernel.js";
 import { LAST_UPDATED_FIELD } from "./kernel.js";
 
 export type Stack = [
-  start: () => () => [
-    lastUpdated: number,
-    dependencies: ReadonlySet<StorageTag>,
-  ],
+  begin: () => void,
+  commit: () => [lastUpdated: number, dependencies: ReadonlySet<StorageTag>],
   consume: (tag: StorageTag) => void,
 ];
 
@@ -15,38 +13,55 @@ const context = buildSharedContext();
 const NO_TAGS = -1;
 
 class TrackingFrame {
+  readonly #parent: TrackingFrame | null;
   readonly #tags = new Set<StorageTag>();
   #lastUpdated = NO_TAGS;
+
+  constructor(parent: TrackingFrame | null = null) {
+    this.#parent = parent;
+  }
 
   add(tag: StorageTag) {
     this.#lastUpdated = Math.max(this.#lastUpdated, tag[LAST_UPDATED_FIELD]);
     this.#tags.add(tag);
   }
 
-  done(): [lastUpdated: number, dependencies: ReadonlySet<StorageTag>] {
-    return [this.#lastUpdated, this.#tags];
+  done(): [
+    parent: TrackingFrame | null,
+    lastUpdated: number,
+    dependencies: ReadonlySet<StorageTag>,
+  ] {
+    return [this.#parent, this.#lastUpdated, this.#tags];
   }
 }
 
-const [start, consume] = (context.stack ??= (() => {
-  let current = new TrackingFrame();
+const [begin, commit, consume] = (context.stack ??= (() => {
+  let current = null as TrackingFrame | null;
 
   return [
     () => {
       const prev = current;
-      current = new TrackingFrame();
+      current = new TrackingFrame(prev);
+    },
 
-      return () => {
-        const result = current;
-        current = prev;
-        return result.done();
-      };
+    () => {
+      const [parent, lastUpdated, tags] = unwrap(current).done();
+      current = parent;
+      return [lastUpdated, tags];
     },
 
     (tag: StorageTag) => {
-      current.add(tag);
+      current?.add(tag);
     },
   ] as Stack;
 })());
 
-export { consume, start };
+export { begin, commit, consume };
+
+export function unwrap<T>(value: T | undefined | null): T {
+  if ((import.meta.env.DEV && value === undefined) || value === null) {
+    throw new Error("Attempted to unwrap a null or undefined value");
+  }
+
+  return value as T;
+}

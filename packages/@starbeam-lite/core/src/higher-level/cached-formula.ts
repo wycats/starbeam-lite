@@ -1,4 +1,4 @@
-import { now, start, TAG } from "@starbeam-lite/shared";
+import { begin, commit, now, TAG } from "@starbeam-lite/shared";
 import type { FormulaTag as FormulaTagFields } from "@starbeam-lite/shared/kernel";
 import { LAST_UPDATED_FIELD } from "@starbeam-lite/shared/kernel";
 
@@ -19,9 +19,9 @@ export function CachedFormula<T>(compute: () => T): CachedFormula<T> {
     [TAG]: tag,
     read: () => {
       if (last === null || tag[LAST_UPDATED_FIELD] > last[LAST_VALIDATED]) {
-        const done = start();
+        begin();
         const value = compute();
-        const [lastUpdated, tags] = done();
+        const [lastUpdated, tags] = commit();
         updated(tag, [...tags], lastUpdated);
 
         last = [now(), value];

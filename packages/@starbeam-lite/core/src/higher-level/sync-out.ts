@@ -1,4 +1,4 @@
-import { start, TAG } from "@starbeam-lite/shared";
+import { begin, commit, TAG } from "@starbeam-lite/shared";
 import type { FormulaTag as FormulaTagFields } from "@starbeam-lite/shared/kernel";
 import {
   DEPENDENCIES_FIELD,
@@ -23,9 +23,9 @@ export function SyncOut(flush: () => void): SyncOut {
         tag[DEPENDENCIES_FIELD].reduce((a, b) => a + b[LAST_UPDATED_FIELD], 0) >
         lastValidated
       ) {
-        const done = start();
+        begin();
         flush();
-        const [lastUpdated, tags] = done();
+        const [lastUpdated, tags] = commit();
         lastValidated = lastUpdated;
         updated(tag, [...tags], lastUpdated);
       }

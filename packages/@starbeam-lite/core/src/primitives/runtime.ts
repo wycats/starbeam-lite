@@ -14,12 +14,11 @@ class Runtime {
 
   readonly subscribe = this.#subscriptions.subscribe;
   readonly updated = this.#subscriptions.updated;
-  readonly initialized = this.#subscriptions.initialized;
   readonly notify = this.#subscriptions.notify;
 }
 
-const { subscribe, notify, updated, initialized } = new Runtime();
-export { initialized, notify, subscribe, updated };
+const { subscribe, notify, updated } = new Runtime();
+export { notify, subscribe, updated };
 
 if (import.meta.vitest) {
   const { test, describe } = import.meta.vitest;
@@ -82,7 +81,7 @@ if (import.meta.vitest) {
     it("notifies when a subscribed mutable tag is updated", ({
       ctx: { events, mutable, formula, unsubscribe, runtime },
     }) => {
-      // initializing aready callbacks
+      // initializing ready callbacks
       updated(formula, [mutable], mutable[LAST_UPDATED_FIELD]);
       events.expect("ready");
 
