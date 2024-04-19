@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers */
-import { Cell, Formula, SyncOut } from "@starbeam-lite/core";
-import { runtime } from "@starbeam-lite/core/subtle";
+import { Cell, Formula, subscribe, SyncOut } from "@starbeam-lite/core";
 import { TAG } from "@starbeam-lite/shared";
 import { EventRecorder, TestScheduler } from "@workspace/test-utils";
 import { describe, expect, it } from "vitest";
@@ -50,7 +49,7 @@ describe("subscribe", () => {
         formula: 10,
       });
 
-      const _unsubscribe = runtime.subscribe(sync[TAG], () => {
+      const _unsubscribe = subscribe(sync[TAG], () => {
         events.record("ready");
 
         // Use the test scheduler to accumulate `sync.read()` as a pending

@@ -5,7 +5,8 @@ import {
   LAST_UPDATED_FIELD,
 } from "@starbeam-lite/shared/kernel";
 
-import { FormulaTag, updated } from "../primitives/formula.js";
+import { FormulaTag } from "../primitives/formula.js";
+import { updated } from "../primitives/updated.js";
 
 export interface SyncOut {
   [TAG]: FormulaTagFields;

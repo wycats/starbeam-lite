@@ -2,8 +2,9 @@ import { begin, commit, now, TAG } from "@starbeam-lite/shared";
 import type { FormulaTag as FormulaTagFields } from "@starbeam-lite/shared/kernel";
 import { LAST_UPDATED_FIELD } from "@starbeam-lite/shared/kernel";
 
-import { FormulaTag, updated } from "../primitives/formula.js";
+import { FormulaTag } from "../primitives/formula.js";
 import type { Tagged } from "../primitives/tag.js";
+import { updated } from "../primitives/updated.js";
 
 const LAST_VALIDATED = 0;
 const LAST_VALUE = 1;

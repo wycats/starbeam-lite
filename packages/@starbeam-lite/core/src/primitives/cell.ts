@@ -7,7 +7,7 @@ import {
   TYPE_FIELD,
 } from "@starbeam-lite/shared/kernel";
 
-import { notify } from "./runtime.js";
+import { notify } from "./subscriptions.js";
 import type { Tagged } from "./tag.js";
 
 export function MutableTag(revision = bump()): StorageTagFields {

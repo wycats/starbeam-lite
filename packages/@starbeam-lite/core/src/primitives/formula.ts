@@ -4,11 +4,12 @@ import {
   DEPENDENCIES_FIELD,
   INITIALIZED_FORMULA_TYPE,
   LAST_UPDATED_FIELD,
+  SUBSCRIPTIONS_FIELD,
   TYPE_FIELD,
   UNINITIALIZED_FORMULA_TYPE,
 } from "@starbeam-lite/shared/kernel";
 
-import * as runtime from "./runtime.js";
+import { updated as updatedSubscription } from "./subscriptions.js";
 import type { Tagged, TagSnapshot } from "./tag.js";
 
 const INITIAL_REVISION = 0;
@@ -25,14 +26,11 @@ export function updated(
 ): void {
   tag[DEPENDENCIES_FIELD] = tags;
   tag[LAST_UPDATED_FIELD] = lastUpdated;
-  runtime.updated(tag, tags);
+  updatedSubscription(tag, tags);
 
   if (tag[TYPE_FIELD] === UNINITIALIZED_FORMULA_TYPE) {
     tag[TYPE_FIELD] = INITIALIZED_FORMULA_TYPE;
-
-    for (const newTag of tags) {
-      runtime.notify(newTag);
-    }
+    tag[SUBSCRIPTIONS_FIELD]?.notify();
   }
 }
 
@@ -61,7 +59,7 @@ function evaluate<T>(compute: () => T, tag: FormulaTagFields): T {
   const value = compute();
   const [lastUpdated, tags] = commit();
 
-  runtime.updated(tag, [...tags]);
+  updatedSubscription(tag, [...tags]);
   tag[LAST_UPDATED_FIELD] = lastUpdated;
 
   for (const tag of tags) {

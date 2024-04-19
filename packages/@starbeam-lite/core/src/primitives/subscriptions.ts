@@ -5,9 +5,7 @@ import type {
 } from "@starbeam-lite/shared/kernel";
 import {
   DEPENDENCIES_FIELD,
-  MUTABLE_STORAGE_TYPE,
   SUBSCRIPTIONS_FIELD,
-  TYPE_FIELD,
 } from "@starbeam-lite/shared/kernel";
 
 import { unwrap } from "../utils/assert.js";
@@ -16,73 +14,51 @@ import type { TagSnapshot } from "./tag.js";
 export type Unsubscribe = () => void;
 export type NotifyReady = () => void;
 
-export class Subscriptions {
-  readonly subscribe = (
-    target: FormulaTagFields,
-    ready: NotifyReady
-  ): Unsubscribe => {
-    this.#subscribe(target, ready);
+export function updated(formula: FormulaTagFields, tags: TagSnapshot): void {
+  const subscription = formula[SUBSCRIPTIONS_FIELD];
+  if (subscription) {
+    const diff = subscription.updated(tags);
 
-    return () => void this.#unsubscribe(target, ready);
-  };
-
-  readonly updated = (
-    formula: FormulaTagFields,
-    dependencies: TagSnapshot
-  ): void => {
-    const subscription = formula[SUBSCRIPTIONS_FIELD];
-
-    if (subscription) {
-      const diff = subscription.updated(dependencies);
-
-      for (const added of diff.add) {
-        this.#getDependencySubscriptions(added).add(subscription);
-      }
-
-      for (const removed of diff.remove) {
-        this.#getDependencySubscriptions(removed).delete(subscription);
-      }
-    }
-  };
-
-  readonly notify = (tag: StorageTagFields): void => {
-    if (tag[TYPE_FIELD] === MUTABLE_STORAGE_TYPE) {
-      this.#notify(tag);
-    }
-  };
-
-  #notify(dependency: StorageTagFields) {
-    const subscriptions = dependency[SUBSCRIPTIONS_FIELD];
-
-    if (subscriptions) {
-      for (const subscription of subscriptions) {
-        subscription.notify();
-      }
-    }
-  }
-
-  #unsubscribe(target: FormulaTagFields, ready: NotifyReady): void {
-    unwrap(target[SUBSCRIPTIONS_FIELD]).unsubscribe(ready);
-  }
-
-  #subscribe(target: FormulaTagFields, ready: NotifyReady): void {
-    const dependencies = target[DEPENDENCIES_FIELD];
-    const subscription = this.#getFormulaSubscription(target);
-
-    for (const dependency of dependencies) {
-      this.#getDependencySubscriptions(dependency).add(subscription);
+    for (const tag of diff.add) {
+      tag[SUBSCRIPTIONS_FIELD]?.add(subscription);
     }
 
-    subscription.subscribe(ready);
+    for (const tag of diff.remove) {
+      tag[SUBSCRIPTIONS_FIELD]?.delete(subscription);
+    }
+  }
+}
+export function notify(tag: StorageTagFields): void {
+  const subscriptions = tag[SUBSCRIPTIONS_FIELD];
+  if (subscriptions) {
+    for (const subscription of subscriptions) {
+      subscription.notify();
+    }
+  }
+}
+
+export function subscribe(
+  formula: FormulaTagFields,
+  ready: NotifyReady
+): Unsubscribe {
+  const dependencies = formula[DEPENDENCIES_FIELD];
+  const subscription = (formula[SUBSCRIPTIONS_FIELD] ??= new Subscription());
+
+  for (const dependency of dependencies) {
+    const subscriptions = (dependency[SUBSCRIPTIONS_FIELD] ??= new Set());
+    subscriptions.add(subscription);
   }
 
-  #getFormulaSubscription(tag: FormulaTagFields): ISubscription {
-    return (tag[SUBSCRIPTIONS_FIELD] ??= new Subscription());
-  }
+  subscription.subscribe(ready);
 
-  #getDependencySubscriptions(tag: StorageTagFields): Set<ISubscription> {
-    return (tag[SUBSCRIPTIONS_FIELD] ??= new Set());
-  }
+  return () => void unsubscribeFormula(formula, ready);
+}
+
+export function unsubscribeFormula(
+  formula: FormulaTagFields,
+  ready: NotifyReady
+): void {
+  unwrap(formula[SUBSCRIPTIONS_FIELD]).unsubscribe(ready);
 }
 
 /**
